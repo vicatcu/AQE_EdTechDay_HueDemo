@@ -1,5 +1,5 @@
 angular.module('hue-eggs', [ ])
-    .controller('EggsController', [ '$http', function($http){
+    .controller('EggsController', [ '$http', '$interval', '$timeout', function($http, $interval, $timeout){
         var mv = this;
         mv.x_cmin = 0.13791673; // x at the minimum concentration
         mv.x_cmax = 0.70235455; // x at the maximum concentration
@@ -13,6 +13,8 @@ angular.module('hue-eggs', [ ])
         mv.concentration_span = mv.concentration_max - mv.concentration_min; // always positive
         mv.xy_slope = mv.y_span / mv.x_span;
         mv.last_updated = "not yet";
+        mv.time_remaining_seconds = 0;
+        mv.lights = [];
 
         // get the config from the server on startup
         $http.get("/config").success(function(data){
@@ -109,6 +111,7 @@ angular.module('hue-eggs', [ ])
             Object.keys(mv.config).forEach(updateEggData);
             mv.last_updated = moment().format("dddd, MMMM Do YYYY, h:mm:ss a");
             updateLights();
+            mv.time_remaining_seconds = 5*60;
         };
 
         /* functions for manipulating a particular light */
@@ -179,9 +182,16 @@ angular.module('hue-eggs', [ ])
 
         /* periodic tasks */
 
-        setTimeout(updateAllEggData, 1000);
-        setInterval(updateAllEggData, 5 * 60000); // every five minutes go get the stats data
+        $timeout(updateAllEggData, 1000);
+        $interval(updateAllEggData, 5 * 60000); // every five minutes go get the stats data
 
-        setTimeout(discoverLights, 3000);
-        setInterval(discoverLights, 15000); // every 15 seconds go check on the lights
+        $timeout(discoverLights, 3000);
+        $interval(discoverLights, 15000); // every 15 seconds go check on the lights
+
+        // update timer
+        $interval(function(){
+            if(mv.time_remaining_seconds > 0){
+                mv.time_remaining_seconds--;
+            }
+        }, 1000)
     }]);
