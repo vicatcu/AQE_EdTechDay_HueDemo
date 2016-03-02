@@ -170,6 +170,10 @@ module.exports = (function(){
         }).then(function(response){
             var data = response.body;
             mv.lights = data;
+            console.log(mv.lights.map(function(light){
+                    return light.name;
+                }
+            ));
         }).then(function(){
             return updateLights();
         }).catch(function(err){
@@ -185,7 +189,7 @@ module.exports = (function(){
             if(mv.updateEggDataFlag){
                 mv.updateEggDataFlag = false;
                 return Promise.try(function(){
-                    return updateAllEggData()
+                    return updateAllEggData();
                 }).then(function(){
                     return theLights;
                 });
@@ -227,8 +231,8 @@ module.exports = (function(){
         indicateTimeToUpdateEggData();
         setInterval(indicateTimeToUpdateEggData, 5 * 60000); // every five minutes go get the stats data
 
-        setTimeout(discoverLights, 3000);
-        setInterval(discoverLights, 15000); // every 15 seconds go check on the lights
+        setTimeout(discoverLights, 4000);
+        setInterval(discoverLights, 16000); // every 15 seconds go check on the lights
     }).catch(function(err){
         console.log(err);
     });
