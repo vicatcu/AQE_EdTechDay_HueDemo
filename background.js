@@ -23,6 +23,7 @@ module.exports = (function(){
     mv.mostRecentStats = {};
     mv.time_remaining_seconds = 0;
 
+    var timeUntilUpdateInSeconds = 5 * 60; // 5 minutes
     var port = normalizePort(process.env.PORT || '3000');
 
 
@@ -228,6 +229,7 @@ module.exports = (function(){
         }).then(function(lights){
             var theLights = lights;
             if(mv.updateEggDataFlag){
+                mv.time_remaining_seconds = timeUntilUpdateInSeconds;
                 mv.updateEggDataFlag = false;
                 return Promise.try(function(){
                     return updateAllEggData();
@@ -269,7 +271,6 @@ module.exports = (function(){
         console.log(contents);
     }).then(function(){
         // configure periodic tasks
-        var timeUntilUpdateInSeconds = 5 * 60; // 5 minutes
         indicateTimeToUpdateEggData();
         mv.time_remaining_seconds = timeUntilUpdateInSeconds;
         setInterval(function(){ // countdown

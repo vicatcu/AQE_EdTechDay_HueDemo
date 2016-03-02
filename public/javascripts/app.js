@@ -111,7 +111,6 @@ angular.module('hue-eggs', [ ])
             Object.keys(mv.config).forEach(updateEggData);
             mv.last_updated = moment().format("dddd, MMMM Do YYYY, h:mm:ss a");
             updateLights();
-            mv.time_remaining_seconds = 5*60;
         };
 
         /* functions for manipulating a particular light */
