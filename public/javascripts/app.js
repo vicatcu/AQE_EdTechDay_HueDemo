@@ -164,6 +164,10 @@ angular.module('hue-eggs', [ ])
         };
 
         var updateLights = function(){
+            // background task should be the one that deals with updating the lights
+            // or else it will compete with the client and they might be out of phase
+
+            /*
             mv.lights.forEach(function(light){
                 var name = light.name;
                 // search for an egg whose alias matches this name
@@ -178,6 +182,7 @@ angular.module('hue-eggs', [ ])
                     }
                 });
             });
+            */
         };
 
         /* periodic tasks */
@@ -190,8 +195,8 @@ angular.module('hue-eggs', [ ])
 
         // update timer
         $interval(function(){
-            if(mv.time_remaining_seconds > 0){
-                mv.time_remaining_seconds--;
-            }
-        }, 1000)
+            $http.get('/timeremaining').success(function(data){
+                mv.time_remaining_seconds = data;
+            });
+        }, 1000);
     }]);

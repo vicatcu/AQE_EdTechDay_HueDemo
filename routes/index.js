@@ -4,11 +4,34 @@ var Promise = require("bluebird");
 var fs = require("fs");
 Promise.promisifyAll(fs);
 var bhttp = require("bhttp");
+var background = require("../background");
 
 /* GET home page. */
 /* GET home page. */
 router.get('/', function(req, res) {
   res.render('index', { title: 'Air Quality Egg' });
+});
+
+router.get('/lights', function(req, res){
+  return Promise.try(function(){
+    return background.getLights()
+  }).then(function(lights){
+    res.json(lights);
+  }).catch(function(err){
+    console.log(err);
+    res.status(400).json(err);
+  });
+});
+
+router.get('/timeremaining', function(req, res){
+  return Promise.try(function(){
+    return background.getTimeRemaining();
+  }).then(function(timeRemaining){
+    res.json(timeRemaining);
+  }).catch(function(err){
+    console.log(err);
+    res.status(400).json(err);
+  });
 });
 
 router.get('/config', function(req, res){
@@ -28,15 +51,10 @@ router.get('/config', function(req, res){
 router.get('/recentstats/:eggSerialNumber', function(req, res) {
   // TODO: this only works for particulate eggs right now
   var serialNumber = req.params.eggSerialNumber;
-  var topic = "/osio/orgs/wd/aqe/particulate";
   return Promise.try(function () {
-    return bhttp.get("http://eggapi.wickeddevice.com/v1/messages/topic/"
-        + topic + "/" + serialNumber + "/" + "5min");
-  }).then(function(response){
-    var numMessages = response.body.messages.length;
-    var lastPayload = response.body.messages[numMessages-1].payload.text;
-    console.log(lastPayload);
-    res.json(JSON.parse(lastPayload));
+    return background.getRecentStats(serialNumber);
+  }).then(function(data){
+    res.json(data);
   }).catch(function(err){
     console.log(err);
     res.status(400).json(err);

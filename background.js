@@ -3,6 +3,7 @@ var fs = require("fs");
 Promise.promisifyAll(fs);
 var bhttp = require("bhttp");
 var moment = require("moment");
+var huewrapper = require("./huewrapper");
 
 module.exports = (function(){
 
@@ -19,8 +20,12 @@ module.exports = (function(){
     mv.concentration_span = mv.concentration_max - mv.concentration_min; // always positive
     mv.xy_slope = mv.y_span / mv.x_span;
     mv.last_updated = "not yet";
+    mv.mostRecentStats = {};
+    mv.time_remaining_seconds = 0;
 
     var port = normalizePort(process.env.PORT || '3000');
+
+
 
     function normalizePort(val) {
         var port = parseInt(val, 10);
@@ -89,11 +94,48 @@ module.exports = (function(){
         return null;
     }
 
+    var getRecentStats = function(eggSerialNumber){
+        return mv.mostRecentStats[eggSerialNumber];
+    };
+
+    var getLights = function(){
+        return mv.lights;
+    };
+
+    var getRecentStatsReally = function(eggSerialNumber){
+
+        var serialNumber = eggSerialNumber;
+        var topic = "/osio/orgs/wd/aqe/particulate";
+        return Promise.try(function () {
+            return bhttp.get("http://eggapi.wickeddevice.com/v1/messages/topic/"
+                + topic + "/" + serialNumber + "/" + "5min");
+        }).then(function(response){
+            var numMessages = response.body.messages.length;
+            var lastPayload = response.body.messages[numMessages-1].payload.text;
+            console.log(lastPayload);
+            mv.mostRecentStats[eggSerialNumber] = JSON.parse(lastPayload);
+            return mv.mostRecentStats[eggSerialNumber];
+        }).catch(function(err){
+            console.log(err);
+            return {};
+        });
+    };
+
+    var getLightsReally = function(){
+        return Promise.try(function(){
+            return huewrapper.getLights();
+        }).then(function(lights){
+            return lights;
+        }).catch(function(err){
+            console.log(err);
+            return [];
+        });
+    };
+
     var updateEggData = function(serialNumber){
         return Promise.try(function(){
-            return bhttp.get("http://localhost:" + port + "/recentstats/" + serialNumber);
-        }).then(function(response){
-            var data = response.body;
+            return getRecentStatsReally(serialNumber);
+        }).then(function(data){
             if(data["converted-value"] && data["converted-value"].avg){
                 var concentration = data["converted-value"].avg.toFixed(1);
                 mv.config[serialNumber].concentration = concentration;
@@ -166,9 +208,8 @@ module.exports = (function(){
 
     function discoverLights(){
         return Promise.try(function() {
-            return bhttp.get("http://localhost:" + port + "/lights");
-        }).then(function(response){
-            var data = response.body;
+            return getLightsReally();
+        }).then(function(data){
             mv.lights = data;
             console.log(mv.lights.map(function(light){
                     return light.name;
@@ -219,7 +260,7 @@ module.exports = (function(){
         mv.updateEggDataFlag = true;
     }
 
-    return Promise.try(function() {
+    Promise.try(function() {
         var dir = __dirname.split('/');
         dir = dir.slice(0, dir.length);
         return fs.readFileAsync(dir.join('/') + "/config.json", "utf8");
@@ -228,13 +269,30 @@ module.exports = (function(){
         console.log(contents);
     }).then(function(){
         // configure periodic tasks
+        var timeUntilUpdateInSeconds = 5 * 60; // 5 minutes
         indicateTimeToUpdateEggData();
-        setInterval(indicateTimeToUpdateEggData, 5 * 60000); // every five minutes go get the stats data
+        mv.time_remaining_seconds = timeUntilUpdateInSeconds;
+        setInterval(function(){ // countdown
+            if(mv.time_remaining_seconds > 0){
+                mv.time_remaining_seconds--;
+            }
+        }, 1000);
 
-        setTimeout(discoverLights, 4000);
-        setInterval(discoverLights, 16000); // every 15 seconds go check on the lights
+        setInterval(indicateTimeToUpdateEggData, timeUntilUpdateInSeconds * 1000);
+
+        setTimeout(discoverLights, 3000);
+        setInterval(discoverLights, 15000); // every 15 seconds go check on the lights
     }).catch(function(err){
         console.log(err);
     });
 
+    var getTimeRemaining = function(){
+        return mv.time_remaining_seconds;
+    };
+
+    return {
+        getRecentStats: getRecentStats,
+        getLights: getLights,
+        getTimeRemaining: getTimeRemaining
+    };
 })();

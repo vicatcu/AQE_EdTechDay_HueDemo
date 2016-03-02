@@ -5,16 +5,6 @@ var fs = require("fs");
 Promise.promisifyAll(fs);
 var huewrapper = require("../huewrapper");
 
-router.get('/', function(req, res){
-    Promise.try(function(){
-        return huewrapper.getLights();
-    }).then(function(lights){
-        return res.json(lights);
-    }).catch(function(err){
-        console.log(err);
-        return res.json([]);
-    });
-});
 
 router.post('/:id/on', function(req, res){
     //console.log(req.params.id);
@@ -44,6 +34,11 @@ router.post('/:id/xybri', function(req, res){
     //console.log(req.params.id);
     //console.log(req.body);
     Promise.try(function(){
+        console.log("setXYBri: "
+            + req.params.id + ", "
+            + req.body.x + ", "
+            + req.body.y + ", "
+            + req.body.brightness);
         return huewrapper.setXYColorBrightness(req.params.id, req.body.x, req.body.y, req.body.brightness);
     }).then(function(){
         res.send({ok: true});
