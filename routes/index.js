@@ -3,7 +3,7 @@ var router = expressPromiseRouter();
 var Promise = require("bluebird");
 var fs = require("fs");
 Promise.promisifyAll(fs);
-var bhttp = Promise.promisifyAll(require("bhttp"));
+var bhttp = require("bhttp");
 
 /* GET home page. */
 router.get('/', function(req, res) {
@@ -41,5 +41,7 @@ router.get('/recentstats/:eggSerialNumber', function(req, res) {
     res.status(400).json(err);
   });
 });
+
+
 
 module.exports = router;

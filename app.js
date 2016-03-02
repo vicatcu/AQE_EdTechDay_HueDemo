@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
+var lights = require('./routes/lights');
 
 var app = express();
 
@@ -26,6 +27,7 @@ app.use(express.static(path.join(__dirname, 'node_modules/angular')));
 app.use(express.static(path.join(__dirname, 'node_modules/colorspaces')));
 app.use(express.static(path.join(__dirname, 'node_modules/moment')));
 app.use('/', routes);
+app.use('/lights', lights);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -57,6 +59,5 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-
 
 module.exports = app;

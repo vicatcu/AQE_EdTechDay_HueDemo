@@ -71,7 +71,12 @@ angular.module('hue-eggs', [ ])
 
             try {
                 var hexcolor = $.colorspaces.make_color('sRGB', [colorR, colorG, colorB]).as('hex');
-                return hexcolor;
+                return {
+                    hex: hexcolor,
+                    cie_x: interpolated_cie_x,
+                    cie_y: interpolated_cie_y,
+                    cie_Y: mv.brightness
+                };
             }
             catch(e){
                 console.log(e);
@@ -88,7 +93,10 @@ angular.module('hue-eggs', [ ])
 
                     // convert concentration to color
                     var color = concentrationToColor(concentration);
-                    mv.config[serialNumber].color = color;
+                    mv.config[serialNumber].color = color.hex;
+                    mv.config[serialNumber].cie_x = color.cie_x;
+                    mv.config[serialNumber].cie_y = color.cie_y;
+                    mv.config[serialNumber].cie_Y = color.cie_Y;
 
                     console.log(mv.config[serialNumber].alias
                         + " => " + mv.config[serialNumber].concentration
@@ -100,8 +108,80 @@ angular.module('hue-eggs', [ ])
         var updateAllEggData = function(){
             Object.keys(mv.config).forEach(updateEggData);
             mv.last_updated = moment().format("dddd, MMMM Do YYYY, h:mm:ss a");
+            updateLights();
         };
+
+        /* functions for manipulating a particular light */
+        mv.setXYColorBrightness = function(light_id, x, y, Y){
+            $http.post('/lights/' + light_id + '/xybri', {
+                    x: x,
+                    y: y,
+                    brightness: Y }
+            ).success(function(data){
+                    console.log(data);
+                }).error(function(err){
+                    console.log(err);
+                });
+        };
+
+        mv.setOn = function(light_id){
+            $http.post('/lights/' + light_id + '/on', null).success(function(data){
+                console.log(data);
+            }).error(function(err){
+                console.log(err);
+            });
+        };
+
+        mv.setOff = function(light_id){
+            $http.post('/lights/' + light_id + '/off', null).success(function(data){
+                console.log(data);
+            }).error(function(err){
+                console.log(err);
+            });
+        };
+
+        mv.setLightName = function(light_id, light_name){
+            $http.post('/lights/' + light_id + '/name', {
+                name: light_name
+            }).success(function(data){
+                console.log(data);
+                discoverLights();
+            }).error(function(err){
+                console.log(err);
+            });
+        };
+
+        function discoverLights(){
+            $http.get("/lights").success(function(data){
+                mv.lights = data;
+                updateLights();
+            }).error(function(err){
+                console.log(err);
+            });
+        };
+
+        var updateLights = function(){
+            mv.lights.forEach(function(light){
+                var name = light.name;
+                // search for an egg whose alias matches this name
+                Object.keys(mv.config).forEach(function(serialNumber){
+                    if(name == mv.config[serialNumber].alias){
+                        mv.setXYColorBrightness(
+                            light.id,
+                            mv.config[serialNumber].cie_x,
+                            mv.config[serialNumber].cie_y,
+                            mv.config[serialNumber].cie_Y
+                        );
+                    }
+                });
+            });
+        };
+
+        /* periodic tasks */
 
         setTimeout(updateAllEggData, 1000);
         setInterval(updateAllEggData, 5 * 60000); // every five minutes go get the stats data
+
+        setTimeout(discoverLights, 3000);
+        setInterval(discoverLights, 15000); // every 15 seconds go check on the lights
     }]);
