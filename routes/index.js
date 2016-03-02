@@ -6,6 +6,7 @@ Promise.promisifyAll(fs);
 var bhttp = require("bhttp");
 
 /* GET home page. */
+/* GET home page. */
 router.get('/', function(req, res) {
   res.render('index', { title: 'Air Quality Egg' });
 });
