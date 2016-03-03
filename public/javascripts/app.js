@@ -109,7 +109,6 @@ angular.module('hue-eggs', [ ])
 
         var updateAllEggData = function(){
             Object.keys(mv.config).forEach(updateEggData);
-            mv.last_updated = moment().format("dddd, MMMM Do YYYY, h:mm:ss a");
             updateLights();
         };
 
@@ -121,9 +120,9 @@ angular.module('hue-eggs', [ ])
                     brightness: Y }
             ).success(function(data){
                     console.log(data);
-                }).error(function(err){
-                    console.log(err);
-                });
+            }).error(function(err){
+                console.log(err);
+            });
         };
 
         mv.setOn = function(light_id){
@@ -195,7 +194,8 @@ angular.module('hue-eggs', [ ])
         // update timer
         $interval(function(){
             $http.get('/timeremaining').success(function(data){
-                mv.time_remaining_seconds = data;
+                mv.time_remaining_seconds = data.time_remaining;
+                mv.last_updated = data.last_updated;
             });
         }, 1000);
     }]);

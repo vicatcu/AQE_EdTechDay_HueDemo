@@ -288,7 +288,10 @@ module.exports = (function(){
     });
 
     var getTimeRemaining = function(){
-        return mv.time_remaining_seconds;
+        return {
+            time_remaining: mv.time_remaining_seconds,
+            last_updated: mv.last_updated
+        };
     };
 
     return {
