@@ -126,6 +126,7 @@ module.exports = (function(){
         return Promise.try(function(){
             return huewrapper.getLights();
         }).then(function(lights){
+            console.log(lights);
             return lights;
         }).catch(function(err){
             console.log(err);

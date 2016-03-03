@@ -66,10 +66,15 @@ angular.module('hue-eggs', [ ])
             colorLinearB = Math.min(Math.max(colorLinearB, 0), 1);
 
             // gamma correct
+            /*
             var alpha = 0.055;
             colorR = colorLinearR <= 0.0031308 ? 12.92 * colorLinearR : (1 + alpha) * Math.pow(colorLinearR, 1/2.4) - alpha;
             colorG = colorLinearG <= 0.0031308 ? 12.92 * colorLinearG : (1 + alpha) * Math.pow(colorLinearG, 1/2.4) - alpha;
             colorB = colorLinearB <= 0.0031308 ? 12.92 * colorLinearB : (1 + alpha) * Math.pow(colorLinearB, 1/2.4) - alpha;
+            */
+            var colorR = colorLinearR;
+            var colorG = colorLinearG;
+            var colorB = colorLinearB;
 
             try {
                 var hexcolor = $.colorspaces.make_color('sRGB', [colorR, colorG, colorB]).as('hex');

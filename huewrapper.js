@@ -111,7 +111,7 @@ module.exports = (function(bridgeip){
     function setColorXY(id, x, y){
         if(ready){
             var state = lightState.create().on(true).xy(x, y);
-            return api.setLightState(id, state);
+            return api.setLightState(id, state).done();
         }
         else{
             throw "API not ready";
@@ -122,7 +122,7 @@ module.exports = (function(bridgeip){
     function setBrightness(id, brightness){
         if(ready){
             var state = lightState.create().on(true).bri(brightness);
-            return api.setLightState(id, state);
+            return api.setLightState(id, state).done();
         }
         else{
             throw "API not ready";
@@ -132,7 +132,7 @@ module.exports = (function(bridgeip){
     function setOn(id){
         if(ready){
             var state = lightState.create().on(true);
-            return api.setLightState(id, state);
+            return api.setLightState(id, state).done();
         }
         else{
             throw "API not ready";
@@ -142,7 +142,7 @@ module.exports = (function(bridgeip){
     function setOff(id){
         if(ready){
             var state = lightState.create().on(false);
-            return api.setLightState(id, state);
+            return api.setLightState(id, state).done();
         }
         else{
             throw "API not ready";
@@ -164,7 +164,7 @@ module.exports = (function(bridgeip){
             }
 
             if(something_set){
-                return api.setLightState(id, state);
+                return api.setLightState(id, state).done();
             }
             else{
                 throw "x, y, brightness input error";
@@ -178,7 +178,7 @@ module.exports = (function(bridgeip){
     function setLightName(id, name){
         if(ready){
             if(name){
-                return api.setLightName(id, name);
+                return api.setLightName(id, name).done();
             }
             else{
                 throw "light name undefined";
