@@ -108,11 +108,13 @@ module.exports = (function(){
         var serialNumber = eggSerialNumber;
         var topic = "/osio/orgs/wd/aqe/particulate";
         return Promise.try(function () {
+            var six_minutes_ago = encodeURIComponent(moment().subtract(6, "minutes").format());
             return bhttp.get("http://eggapi.wickeddevice.com/v1/messages/topic/"
-                + topic + "/" + serialNumber + "/" + "5min");
+                + topic + "/" + serialNumber + "/" + "5min?start-date=" + six_minutes_ago);
         }).then(function(response){
             var numMessages = response.body.messages.length;
             var lastPayload = response.body.messages[numMessages-1].payload.text;
+            console.log(response.body.messages[numMessages-1]);
             console.log(lastPayload);
             mv.mostRecentStats[eggSerialNumber] = JSON.parse(lastPayload);
             return mv.mostRecentStats[eggSerialNumber];
