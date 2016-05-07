@@ -27,12 +27,28 @@ module.exports = (function(bridgeip){
         return hue.nupnpSearch().then(function(bridge) {
             // find the hub
             console.log("Hue Bridge Found: " + JSON.stringify(bridge));
-            if(bridge.length > 0) {
+            if (bridge.length > 0) {
                 bridegip = bridge[0].ipaddress;
+                return true;
             }
-            else{
-                throw "Hue Bridge not found";
+            else {
+                return false;
             }
+        }).then(function(discovery_complete){
+             if(discovery_complete){
+                 return true;
+             }
+             else{
+                return hue.upnpSearch(10000).then(function(bridge){
+                    if (bridge.length > 0) {
+                        bridegip = bridge[0].ipaddress;
+                        return true;
+                    }
+                    else {
+                        throw "No Hue Bridge found";
+                    }
+                });
+             }
         }).then(function(){
             // create the api object
             api = new HueApi(bridegip, username);

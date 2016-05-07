@@ -108,8 +108,9 @@ module.exports = (function(){
         var serialNumber = eggSerialNumber;
         var topic = "/osio/orgs/wd/aqe/particulate";
         return Promise.try(function () {
-            return bhttp.get("http://eggapi.wickeddevice.com/v1/messages/topic/"
-                + topic + "/" + serialNumber + "/" + "5min");
+            var six_minutes_ago = encodeURIComponent(moment().subtract(6, "minutes").format());
+            return bhttp.get("http://airqualityegg.wickeddevice.com/proxy/v1/messages/topic/"
+                + topic + "/" + serialNumber + "/" + "5min?start-date=" + );
         }).then(function(response){
             var numMessages = response.body.messages.length;
             var lastPayload = response.body.messages[numMessages-1].payload.text;
@@ -126,7 +127,15 @@ module.exports = (function(){
         return Promise.try(function(){
             return huewrapper.getLights();
         }).then(function(lights){
-            console.log(lights);
+            console.log(
+                lights.map(function(light){
+                    return {
+                      name: light.name,
+                      x: light.state.xy[0],
+                      y: light.state.xy[1]
+                    };
+                })
+            );
             return lights;
         }).catch(function(err){
             console.log(err);
